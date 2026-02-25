@@ -1,4 +1,31 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import uncertainties.unumpy as unp
+from uncertainties import ufloat 
+
+### measurement data
+
+# voltage
+V = np.array([1000, 900, 800, 700, 675, 650, 625, 600, 575, 550, 525, 500, 475, 450, 400, 300])
+
+# fails channel 2 and 4 
+f_2 = np.array([7, 5, 13, 8, 12, 38, 165, 664, 1287, 1952, 2265, 2412, 2465, 2486, 2489, 2492])
+uf_2 = unp.uarray(f_2,np.sqrt(f_2))
+
+f_4 = np.array([212, 210, 266, 217, 246, 267, 312, 493, 914, 1555, 2003, 2347, 2437, 2473, 2484, 2492])
+uf_4 = unp.uarray(f_4,np.sqrt(f_4))
+
+triggers = ([2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500, 2500])
+
+# successes channel 2 and 4
+suc_2 = triggers - uf_2
+
+suc_4 = triggers - uf_4
+
+# efficiencies channel 2 and 4 
+eff_2 = suc_2 / triggers
+
+eff_4 = suc_4 / triggers
 
 
 
@@ -122,26 +149,51 @@ print("len plate 2 hit = ", len(x2_hit))
 print("len plat e4 hit = ", len(x4_hit))
 
 # geometric efficiency
-efficiency_2 = hit(x2_hit, y2_hit)/len(x2_hit)
+effgeom_2 = hit(x2_hit, y2_hit)/len(x2_hit)
 
-efficiency_4 = hit(x4_hit, y4_hit)/len(x4_hit)
-
-
-print("efficiency_2 = ", efficiency_2)
-print("efficiency_4 = ", efficiency_4)
+effgeom_4 = hit(x4_hit, y4_hit)/len(x4_hit)
 
 
-print("len plate 2 hit e = ", len(x2_hit_e))
-print("len plate 4 hit e = ", len(x4_hit_e))
-
-# efficiency with error 
-efficiency_2_e = hit_e(x2_hit_e, y2_hit_e)/len(x2_hit_e)
-
-efficiency_4_e = hit_e(x4_hit_e, y4_hit_e)/len(x4_hit_e)
+print("geometric efficiency_2 = ", effgeom_2)
+print("geometric cefficiency_4 = ", effgeom_4)
 
 
-print("efficiency_2 e = ", efficiency_2_e)
-print("efficiency_4 e= ", efficiency_4_e)
+print("hits plate two e = ", len(x2_hit_e))
+print("hits plate 4 e = ", len(x4_hit_e))
 
-# absolute error of geometric efficiency 
-print("absolute error", efficiency_4 - efficiency_4_e)
+# geometric efficiency with error 
+effgeom_2_e = hit_e(x2_hit_e, y2_hit_e)/len(x2_hit_e)
+
+effgeom_4_e = hit_e(x4_hit_e, y4_hit_e)/len(x4_hit_e)
+
+
+print("geometric efficiency_2 e = ", effgeom_2_e)
+print("geometric efficiency_4 e= ", effgeom_4_e)
+
+# absolute error of geometric efficiency plate 4
+print("correction factor plate 4 = ", effgeom_4 - effgeom_4_e)
+
+# detector efficiency 
+effdec_2 = eff_2 / ufloat(effgeom_2, effgeom_2 - effgeom_2_e) 
+
+effdec_4 = eff_4 / ufloat(effgeom_4, effgeom_4 - effgeom_4_e)
+
+# plotting results 
+plt.errorbar(V, unp.nominal_values(eff_2), yerr=unp.std_devs(eff_2), fmt='.', label="measured efficiency")
+plt.errorbar(V, unp.nominal_values(effdec_2), yerr=unp.std_devs(effdec_2), fmt='.', label="detector efficiency")
+plt.title("Efficiency Channel 2")
+plt.xlabel("Voltage (V)")
+plt.ylabel("Efficiency")
+plt.legend(loc = 'lower right')
+plt.grid()
+plt.show()
+
+plt.errorbar(V, unp.nominal_values(eff_4), yerr=unp.std_devs(eff_4), fmt='.', label="measured efficiency")
+plt.errorbar(V, unp.nominal_values(effdec_4), yerr=unp.std_devs(effdec_4), fmt='.', label="detector efficiency")
+plt.title("Efficiency Channel 4")
+plt.xlabel("Voltage (V)")
+plt.ylabel("Efficiency")
+plt.grid()
+plt.legend(loc = 'lower right')
+plt.show()
+efficiency_4_e)
